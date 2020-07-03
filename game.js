@@ -1,17 +1,209 @@
 let config = require("visual-config-exposer").default;
 
-const DEBUG = false;
+const DEBUG = true;
+
+class Pipe {
+    constructor(dir, x, pipeHeight) {
+        this.dir = dir;
+        this.height = pipeHeight;
+
+        this.pipeSize = {
+            width: 70,
+            height: height - pipeHeight,
+        };
+
+        this.x = x - this.pipeSize.width / 2;
+
+        if (this.dir == 1) {
+            this.rotation = -PI;
+
+            this.rect = new Rectangle(this.x, 0, this.pipeSize.width, this.height);
+        } else if (dir == -1) {
+            this.rotation = 0;
+
+            this.rect = new Rectangle(
+                this.x,
+                this.height,
+                this.pipeSize.width,
+                this.pipeSize.height
+            );
+            this.rect.debugColor = 255;
+        }
+
+        this.imgSize = {
+            width: this.rect.w,
+            height: this.rect.h,
+        };
+
+        this.head = window.images.pipeHead;
+        this.body = window.images.pipeBody;
+
+        this.headSize = calculateAspectRatioFit(
+            this.head.width,
+            this.head.height,
+            this.rect.w,
+            this.rect.h
+        );
+    }
+
+    draw(newX) {
+        this.rect.x = newX;
+
+        push();
+        translate(this.rect.center().x, this.rect.center().y);
+        rotate(this.rotation);
+        imageMode(CENTER);
+        if (this.dir == 1) {
+            image(
+                this.head,
+                0,
+                -this.rect.h / 2 + this.headSize.height / 2,
+                this.headSize.width,
+                this.headSize.height
+            );
+            image(
+                this.body,
+                0,
+                this.headSize.height / 2,
+                this.rect.w - 7,
+                this.rect.h - this.headSize.height
+            );
+        } else if (this.dir == -1) {
+            image(
+                this.head,
+                0,
+                -this.rect.h / 2 + this.headSize.height / 2,
+                this.headSize.width,
+                this.headSize.height
+            );
+            image(
+                this.body,
+                0,
+                this.headSize.height / 2,
+                this.rect.w - 7,
+                this.rect.h - this.headSize.height
+            );
+        }
+        imageMode(CORNER);
+        pop();
+        this.rect.debug();
+    }
+}
+
+class Gate {
+    constructor(x, gapY) {
+        this.speed = 230;
+
+        this.x = x;
+        this.gapY = gapY;
+        let gapHeight = 180;
+        this.pipeUp = new Pipe(-1, this.x, gapY + gapHeight / 2);
+        this.pipeDown = new Pipe(1, this.x, gapY - gapHeight / 2);
+        this.dead = false;
+    }
+
+    draw() {
+        this.x -= (this.speed * deltaTime) / 1000;
+        this.pipeUp.draw(this.x);
+        this.pipeDown.draw(this.x);
+
+        if (DEBUG) {
+            fill(255, 0, 0);
+            noStroke();
+            circle(this.x, this.gapY, 10);
+        }
+
+        this.dead = this.pipeDown.rect.right() < 0;
+    }
+}
+
+class Bird {
+    constructor() {
+        this.x = width / 3;
+        this.y = height / 2;
+        this.img = window.images.bird;
+        this.size = calculateAspectRatioFit(this.img.width, this.img.height, 60, 60);
+        this.rect = Rectangle.FromPosition(this.x, this.y, this.size.width, this.size.height);
+        this.scale = 1;
+        this.rotation = 0;
+        this.firstJump = true;
+
+        this.gravity = 60;
+        this.jumpForce = 15;
+
+        this.vel = 0;
+    }
+
+    draw() {
+        push();
+        translate(this.rect.center().x, this.rect.center().y);
+        scale(this.scale);
+        rotate(this.rotation);
+        imageMode(CENTER);
+        image(this.img, 0, 0, this.rect.w, this.rect.h);
+        imageMode(CORNER);
+        pop();
+        this.rect.debug();
+
+        if (!this.firstJump) {
+            this.vel += (this.gravity * deltaTime) / 1000;
+            this.rect.y += this.vel;
+        }
+    }
+
+    jump() {
+        if (this.firstJump) {
+            this.firstJump = false;
+        }
+
+        this.vel = -this.jumpForce;
+    }
+}
 
 class Game {
     constructor() {
         this.defaults();
+
+        this.gateSpawnCd = 3;
+        this.c_gateSpawnCd = 2;
+        this.gates = [];
+        this.firstGate = true;
+
+        this.bird = new Bird();
     }
 
     permaUpdate() {}
 
-    updateGame() {}
+    updateGame() {
+        this.gates = this.gates.filter((gate) => {
+            gate.draw();
+            return !gate.dead;
+        });
 
-    onMousePress() {}
+        this.bird.draw();
+        this.c_gateSpawnCd -= deltaTime / 1000;
+
+        if (this.c_gateSpawnCd < 0) {
+            this.c_gateSpawnCd = this.gateSpawnCd;
+            this.gates.push(new Gate(width, this.getGapY()));
+        }
+    }
+
+    getGapY() {
+        if (this.firstGate) {
+            this.firstGate = false;
+            return height / 2;
+        }
+
+        let minY = height / 2 - height / 4;
+        let maxY = height / 2 + height / 4;
+
+        return floor(random(minY, maxY));
+    }
+
+    onMousePress() {
+        this.bird.jump();
+    }
 
     finishGame() {
         if (!this.finished) {
@@ -31,7 +223,7 @@ class Game {
 
         this.particles = [];
 
-        this.instructionsFontSize = height / 30;
+        this.instructionsFontSize = height / 27;
         this.scoreFontSize = height / 20;
         this.delayBeforeExit = 1.2;
 
@@ -61,7 +253,12 @@ class Game {
         this.bgImage = window.images.background;
 
         if (config.preGameScreen.backgroundMode == "fit") {
-            let size = calculateAspectRatioFit(this.bgImage.width, this.bgImage.height, width, height);
+            let size = calculateAspectRatioFit(
+                this.bgImage.width,
+                this.bgImage.height,
+                width,
+                height
+            );
             this.bgImageWidth = size.width;
             this.bgImageHeight = size.height;
         } else {
@@ -137,9 +334,17 @@ class Game {
                 textSize(this.c_instructionsFontSize);
                 textAlign(CENTER);
 
-                text(config.settings.instructions1, width / 2, height / 10);
-                text(config.settings.instructions2, width / 2, (height / 10) * 1.5);
-                text(config.settings.instructions3, width / 2, (height / 10) * 2);
+                text(
+                    config.settings.instructions1,
+                    width / 2,
+                    height / 2 - this.instructionsFontSize * 1.7
+                );
+                text(config.settings.instructions2, width / 2, height / 2);
+                text(
+                    config.settings.instructions3,
+                    width / 2,
+                    height / 2 + this.instructionsFontSize * 1.7
+                );
             }
 
             if (this.started) {
@@ -320,7 +525,7 @@ class Rectangle {
     }
 
     center() {
-        return new Vector2(this.x + this.w / 2, this.y + this.h / 2);
+        return createVector(this.x + this.w / 2, this.y + this.h / 2);
     }
 
     top() {

@@ -139,6 +139,21 @@
                     }
                 },
                 {
+                    "key": "pipeBody",
+                    "header": "Pipe body image",
+                    "type": "image"
+                },
+                {
+                    "key": "pipeHead",
+                    "header": "Pipe end image",
+                    "type": "image"
+                },
+                {
+                    "key": "bird",
+                    "header": "Bird image",
+                    "type": "image"
+                },
+                {
                     "key": "textColor",
                     "header": "In Game Text Color",
                     "type": "color"
@@ -290,11 +305,14 @@
             "soundDisabledIcon": "assets/sound_off.png"
         },
         "settings": {
-            "instructions1": "Tap / Spacebar to place blocks",
-            "instructions2": "Place new blocks over the old ones",
+            "instructions1": "Tap to jump",
+            "instructions2": "Stay between the pipes",
             "instructions3": "Have fun!",
             "scoreToWin": 5,
             "textColor": "#000",
+            "pipeHead": "assets/pipeHead.png",
+            "pipeBody": "assets/pipeBody.png",
+            "bird": "assets/plane.png",
             "theme": "assets/theme.mp3",
             "volume": "0.7",
             "tap": "assets/tap.wav",
