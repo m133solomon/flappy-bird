@@ -122,7 +122,7 @@ class Gate {
         this.scored = false;
         this.dead = false;
 
-        if (random(100) < 130) {
+        if (random(100) < 30) {
             this.coin = new Coin(this.x, this.gapY);
         }
     }
