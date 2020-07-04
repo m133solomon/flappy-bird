@@ -84,6 +84,7 @@ window.sounds = {};
 function loadImages() {
     window.images.background = loadImage(config.preGameScreen["backgroundImage"]);
     window.images.bird = loadImage(config.settings.bird);
+	window.images.coin = loadImage(config.settings.coin);
     window.images.pipeHead = loadImage(config.settings.pipeHead);
     window.images.pipeBody = loadImage(config.settings.pipeBody);
 }

@@ -40,10 +40,7 @@
                     "key": "backgroundMode",
                     "header": "Background image mode",
                     "type": "dropdown",
-                    "options": [
-                        "cover",
-                        "fit"
-                    ]
+                    "options": ["cover", "fit"]
                 },
                 {
                     "key": "backgroundColor",
@@ -154,6 +151,11 @@
                     "type": "image"
                 },
                 {
+                    "key": "coin",
+                    "header": "Coin image",
+                    "type": "image"
+                },
+                {
                     "key": "gapLevel",
                     "header": "Gap size",
                     "type": "range",
@@ -162,6 +164,26 @@
                         "maxValue": 4,
                         "stepSize": 1
                     }
+                },
+                {
+                    "key": "coinScore",
+                    "header": "Extra score per coin",
+                    "type": "range",
+                    "options": {
+                        "minValue": 0,
+                        "maxValue": 5,
+                        "stepSize": 1
+                    }
+                },
+                {
+                    "key": "jumpParticles",
+                    "header": "Show jump particles",
+                    "type": "boolean"
+                },
+                {
+                    "key": "jumpParticlesColor",
+                    "header": "Jump particles color",
+                    "type": "color"
                 },
                 {
                     "key": "textColor",
@@ -307,7 +329,7 @@
             "backgroundMode": "cover",
             "titleImage": "assets/placeholder_logo.jpg",
             "titleImageSize": 200,
-            "fontFamily": "Balsamiq Sans",
+            "fontFamily": "Oxygen",
             "showLeaderboardButton": true,
             "leaderboardButtonText": "Leadeboard",
             "showSoundButton": true,
@@ -323,7 +345,11 @@
             "pipeHead": "assets/pipeHead.png",
             "pipeBody": "assets/pipeBody.png",
             "bird": "assets/plane.png",
+            "coin": "assets/coin.png",
+            "jumpParticles": true,
+            "jumpParticlesColor": "#ffffff",
             "gapLevel": "2",
+            "coinScore": 3,
             "theme": "assets/theme.mp3",
             "volume": "0.7",
             "tap": "assets/tap.wav",

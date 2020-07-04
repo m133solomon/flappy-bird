@@ -2,7 +2,10 @@ let config = require("visual-config-exposer").default;
 
 const DEBUG = true;
 
-const BirdSize = 60;
+const MOBILE = window.mobile() || window.innerWidth < 500 || window.innerHeight < 500;
+const BirdSize = MOBILE ? 50 : 60;
+const CoinScore = parseInt(config.settings.coinScore);
+
 function getGapLevel() {
     let lv = config.settings.gapLevel;
     if (lv == 1) return 1;
@@ -20,7 +23,7 @@ class Pipe {
         this.height = pipeHeight;
 
         this.pipeSize = {
-            width: 70,
+            width: BirdSize * 1.3,
             height: height - pipeHeight,
         };
 
@@ -108,6 +111,9 @@ class Gate {
 
         let gapUnit = BirdSize * 2;
         let gapHeight = GapLevel * gapUnit;
+        if (MOBILE) {
+            gapHeight *= 1.1;
+        }
 
         this.x = x;
         this.gapY = gapY;
@@ -115,6 +121,10 @@ class Gate {
         this.pipeDown = new Pipe(1, this.x, gapY - gapHeight / 2);
         this.scored = false;
         this.dead = false;
+
+        if (random(100) < 130) {
+            this.coin = new Coin(this.x, this.gapY);
+        }
     }
 
     draw() {
@@ -131,6 +141,11 @@ class Gate {
         }
 
         this.dead = this.pipeDown.rect.right() < 0;
+
+        if (this.coin) {
+            this.coin.x = this.x + this.pipeDown.rect.w / 2;
+            this.coin.draw();
+        }
     }
 }
 
@@ -147,7 +162,7 @@ class Bird {
         this.firstJump = true;
 
         this.gravity = 60;
-        this.jumpForce = 13;
+        this.jumpForce = floor(this.rect.h * 0.27);
 
         this.vel = 0;
 
@@ -209,8 +224,8 @@ class Bird {
         }
 
         if (this.dead) {
-            this.rotation += this.rotSpeed * this.rotDir * deltaTime / 1000;
-            this.rect.x += this.speed * this.rotDir * deltaTime / 1000;
+            this.rotation += (this.rotSpeed * this.rotDir * deltaTime) / 1000;
+            this.rect.x += (this.speed * this.rotDir * deltaTime) / 1000;
         }
     }
 
@@ -223,6 +238,48 @@ class Bird {
     }
 }
 
+class Coin {
+    constructor(x, y) {
+        this.img = window.images.coin;
+        this.size = calculateAspectRatioFit(this.img.width, this.img.height, BirdSize, BirdSize);
+        this.x = x;
+        this.y = y;
+        this.scale = 1;
+
+        this.growCd = 0.5;
+        this.c_growCd = this.growCd;
+        this.minScale = 0.9;
+        this.maxScale = 1.1;
+        this.grow = true;
+    }
+
+    draw() {
+        this.rect = Rectangle.FromPosition(this.x, this.y, this.size.width, this.size.height);
+
+        push();
+        translate(this.x, this.y);
+        scale(this.scale);
+        imageMode(CENTER);
+        image(this.img, 0, 0, this.size.width, this.size.height);
+        imageMode(CORNER);
+        pop();
+
+        this.rect.debug();
+
+        this.c_growCd -= deltaTime / 1000;
+        if (this.c_growCd < 0) {
+            this.c_growCd = this.growCd;
+            this.grow = !this.grow;
+        }
+
+        if (this.grow) {
+            this.scale = map(this.c_growCd, this.growCd, 0, this.minScale, this.maxScale);
+        } else {
+            this.scale = map(this.c_growCd, this.growCd, 0, this.maxScale, this.minScale);
+        }
+    }
+}
+
 class Game {
     constructor() {
         this.defaults();
@@ -230,6 +287,7 @@ class Game {
         this.gateSpawnCd = 3;
         this.c_gateSpawnCd = 2;
         this.gates = [];
+        this.coins;
         this.firstGate = true;
 
         this.bird = new Bird();
@@ -251,6 +309,24 @@ class Game {
             if (this.finished) {
                 gate.finished = true;
             }
+
+            if (gate.coin && intersectRect(gate.coin.rect, this.bird.hitbox)) {
+                this.increaseScore(CoinScore);
+                for (let i = 0; i < 5; i++) {
+                    let p = new Particle(
+                        gate.coin.x,
+                        gate.coin.y,
+                        randomParticleAcc(3),
+                        floor(random(45, 65))
+                    );
+                    p.image = window.images.coin;
+                    p.setLifespan(random(0.3, 0.5));
+                    p.easing = "easeInQuad";
+                    this.particles.push(p);
+                }
+                gate.coin = undefined;
+            }
+
             return !gate.dead;
         });
 
@@ -290,6 +366,21 @@ class Game {
     onMousePress() {
         if (!this.bird.dead) {
             this.bird.jump();
+
+            if (config.settings.jumpParticles) {
+                let col = color(config.settings.jumpParticlesColor);
+                for (let i = 0; i < 5; i++) {
+                    let acc = {
+                        x: random(-2, 2),
+                        y: random(1, 3),
+                    };
+                    let x = random(this.bird.rect.center().x - 10, this.bird.rect.center().x + 10);
+                    let y = random(this.bird.rect.bottom() + 5, this.bird.rect.bottom() + 15);
+                    let p = new Particle(x, y, acc, random(25, 35), col);
+                    p.setLifespan(random(0.2, 0.4));
+                    this.particles.push(p);
+                }
+            }
         }
     }
 
@@ -592,6 +683,7 @@ class Particle {
                 image(this.image, this.x, this.y, this.size, this.size);
                 imageMode(CORNER);
             } else {
+                noStroke();
                 fill(this.color);
                 circle(this.x, this.y, this.size);
             }
