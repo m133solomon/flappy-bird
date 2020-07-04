@@ -154,6 +154,16 @@
                     "type": "image"
                 },
                 {
+                    "key": "gapLevel",
+                    "header": "Gap size",
+                    "type": "range",
+                    "options": {
+                        "minValue": 1,
+                        "maxValue": 4,
+                        "stepSize": 1
+                    }
+                },
+                {
                     "key": "textColor",
                     "header": "In Game Text Color",
                     "type": "color"
@@ -313,6 +323,7 @@
             "pipeHead": "assets/pipeHead.png",
             "pipeBody": "assets/pipeBody.png",
             "bird": "assets/plane.png",
+            "gapLevel": "2",
             "theme": "assets/theme.mp3",
             "volume": "0.7",
             "tap": "assets/tap.wav",

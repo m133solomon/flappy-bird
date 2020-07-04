@@ -2,6 +2,18 @@ let config = require("visual-config-exposer").default;
 
 const DEBUG = true;
 
+const BirdSize = 60;
+function getGapLevel() {
+    let lv = config.settings.gapLevel;
+    if (lv == 1) return 1;
+    if (lv == 2) return 1.4;
+    if (lv == 3) return 1.8;
+    if (lv == 4) return 2;
+
+    return 1.4;
+}
+const GapLevel = getGapLevel();
+
 class Pipe {
     constructor(dir, x, pipeHeight) {
         this.dir = dir;
@@ -94,16 +106,21 @@ class Gate {
     constructor(x, gapY) {
         this.speed = 230;
 
+        let gapUnit = BirdSize * 2;
+        let gapHeight = GapLevel * gapUnit;
+
         this.x = x;
         this.gapY = gapY;
-        let gapHeight = 180;
         this.pipeUp = new Pipe(-1, this.x, gapY + gapHeight / 2);
         this.pipeDown = new Pipe(1, this.x, gapY - gapHeight / 2);
+        this.scored = false;
         this.dead = false;
     }
 
     draw() {
-        this.x -= (this.speed * deltaTime) / 1000;
+        if (!this.finished) {
+            this.x -= (this.speed * deltaTime) / 1000;
+        }
         this.pipeUp.draw(this.x);
         this.pipeDown.draw(this.x);
 
@@ -122,16 +139,57 @@ class Bird {
         this.x = width / 3;
         this.y = height / 2;
         this.img = window.images.bird;
-        this.size = calculateAspectRatioFit(this.img.width, this.img.height, 60, 60);
+        this.size = calculateAspectRatioFit(this.img.width, this.img.height, BirdSize, BirdSize);
         this.rect = Rectangle.FromPosition(this.x, this.y, this.size.width, this.size.height);
+        this.rect.debugColor = 255;
         this.scale = 1;
         this.rotation = 0;
         this.firstJump = true;
 
         this.gravity = 60;
-        this.jumpForce = 15;
+        this.jumpForce = 13;
 
         this.vel = 0;
+
+        this.dead = false;
+
+        this.hitbox = Rectangle.FromPosition(
+            this.rect.center().x,
+            this.rect.center().y,
+            this.rect.w * 0.9,
+            this.rect.h * 0.8
+        );
+        this.hitbox.debugColor = color(255, 0, 255);
+    }
+
+    kill() {
+        this.gravity *= 0.4;
+        this.rotDir = random(100) < 50 ? 1 : -1;
+        this.rotSpeed = PI * 1.5;
+        this.speed = this.rect.w * 4;
+    }
+
+    checkCollisions(gates) {
+        this.hitbox = Rectangle.FromPosition(
+            this.rect.center().x,
+            this.rect.center().y,
+            this.rect.w * 0.9,
+            this.rect.h * 0.9
+        );
+        this.hitbox.debug();
+
+        gates.map((gate) => {
+            if (
+                intersectRect(this.hitbox, gate.pipeUp.rect) ||
+                intersectRect(this.hitbox, gate.pipeDown.rect)
+            ) {
+                this.dead = true;
+            }
+        });
+
+        if (this.rect.bottom() < 0 || this.rect.top() > height) {
+            this.dead = true;
+        }
     }
 
     draw() {
@@ -148,6 +206,11 @@ class Bird {
         if (!this.firstJump) {
             this.vel += (this.gravity * deltaTime) / 1000;
             this.rect.y += this.vel;
+        }
+
+        if (this.dead) {
+            this.rotation += this.rotSpeed * this.rotDir * deltaTime / 1000;
+            this.rect.x += this.speed * this.rotDir * deltaTime / 1000;
         }
     }
 
@@ -177,16 +240,39 @@ class Game {
     updateGame() {
         this.gates = this.gates.filter((gate) => {
             gate.draw();
+            if (
+                gate.pipeUp.rect.right() < this.bird.rect.left() &&
+                !gate.scored &&
+                !this.bird.dead
+            ) {
+                this.increaseScore();
+                gate.scored = true;
+            }
+            if (this.finished) {
+                gate.finished = true;
+            }
             return !gate.dead;
         });
 
         this.bird.draw();
+        this.bird.checkCollisions(this.gates);
+
         this.c_gateSpawnCd -= deltaTime / 1000;
 
         if (this.c_gateSpawnCd < 0) {
             this.c_gateSpawnCd = this.gateSpawnCd;
             this.gates.push(new Gate(width, this.getGapY()));
         }
+
+        if (this.bird.dead && !this.finished) {
+            this.finishGame();
+            this.bird.kill();
+        }
+    }
+
+    increaseScore(amt = 1) {
+        this.score += amt;
+        this.c_scoreFontSize = this.scoreFontSize * 1.8;
     }
 
     getGapY() {
@@ -202,7 +288,9 @@ class Game {
     }
 
     onMousePress() {
-        this.bird.jump();
+        if (!this.bird.dead) {
+            this.bird.jump();
+        }
     }
 
     finishGame() {
