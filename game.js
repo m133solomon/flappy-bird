@@ -1,10 +1,11 @@
 let config = require("visual-config-exposer").default;
 
-const DEBUG = true;
+const DEBUG = false;
 
 const MOBILE = window.mobile() || window.innerWidth < 500 || window.innerHeight < 500;
 const BirdSize = MOBILE ? 50 : 60;
 const CoinScore = parseInt(config.settings.coinScore);
+const GateSpeed = 230;
 
 function getGapLevel() {
     let lv = config.settings.gapLevel;
@@ -107,7 +108,7 @@ class Pipe {
 
 class Gate {
     constructor(x, gapY) {
-        this.speed = 230;
+        this.speed = GateSpeed;
 
         let gapUnit = BirdSize * 2;
         let gapHeight = GapLevel * gapUnit;
@@ -121,10 +122,6 @@ class Gate {
         this.pipeDown = new Pipe(1, this.x, gapY - gapHeight / 2);
         this.scored = false;
         this.dead = false;
-
-        if (random(100) < 30) {
-            this.coin = new Coin(this.x, this.gapY);
-        }
     }
 
     draw() {
@@ -141,11 +138,6 @@ class Gate {
         }
 
         this.dead = this.pipeDown.rect.right() < 0;
-
-        if (this.coin) {
-            this.coin.x = this.x + this.pipeDown.rect.w / 2;
-            this.coin.draw();
-        }
     }
 }
 
@@ -251,6 +243,7 @@ class Coin {
         this.minScale = 0.9;
         this.maxScale = 1.1;
         this.grow = true;
+        this.dead = false;
     }
 
     draw() {
@@ -277,6 +270,10 @@ class Coin {
         } else {
             this.scale = map(this.c_growCd, this.growCd, 0, this.maxScale, this.minScale);
         }
+
+        if (this.rect.right() < 0) {
+            this.dead = true;
+        }
     }
 }
 
@@ -287,7 +284,7 @@ class Game {
         this.gateSpawnCd = 3;
         this.c_gateSpawnCd = 2;
         this.gates = [];
-        this.coins;
+        this.coins = [];
         this.firstGate = true;
 
         this.bird = new Bird();
@@ -310,23 +307,6 @@ class Game {
                 gate.finished = true;
             }
 
-            if (gate.coin && intersectRect(gate.coin.rect, this.bird.hitbox)) {
-                this.increaseScore(CoinScore);
-                for (let i = 0; i < 5; i++) {
-                    let p = new Particle(
-                        gate.coin.x,
-                        gate.coin.y,
-                        randomParticleAcc(3),
-                        floor(random(45, 65))
-                    );
-                    p.image = window.images.coin;
-                    p.setLifespan(random(0.3, 0.5));
-                    p.easing = "easeInQuad";
-                    this.particles.push(p);
-                }
-                gate.coin = undefined;
-            }
-
             return !gate.dead;
         });
 
@@ -337,13 +317,53 @@ class Game {
 
         if (this.c_gateSpawnCd < 0) {
             this.c_gateSpawnCd = this.gateSpawnCd;
-            this.gates.push(new Gate(width, this.getGapY()));
+            let gate = new Gate(width, this.getGapY());
+            if (random(100) < 20) {
+                this.coins.push(new Coin(gate.x + gate.pipeUp.rect.w / 2, gate.gapY));
+            }
+            this.gates.push(gate);
         }
 
         if (this.bird.dead && !this.finished) {
             this.finishGame();
             this.bird.kill();
         }
+
+        if (
+            this.c_gateSpawnCd > this.gateSpawnCd * 0.3 &&
+            this.c_gateSpawnCd < this.gateSpawnCd * 0.8
+        ) {
+            if (random(150) < 1) {
+                let y = floor(random(height / 3, height - height / 3));
+                this.coins.push(new Coin(width + BirdSize, y));
+            }
+        }
+
+        this.coins = this.coins.filter((coin) => {
+            coin.draw();
+
+            if (!this.finished) {
+                coin.x -= (GateSpeed * deltaTime) / 1000;
+            }
+
+            if (intersectRect(this.bird.rect, coin.rect)) {
+                this.increaseScore(CoinScore);
+                for (let i = 0; i < 5; i++) {
+                    let p = new Particle(
+                        coin.x,
+                        coin.y,
+                        randomParticleAcc(3),
+                        floor(random(45, 65))
+                    );
+                    p.image = window.images.coin;
+                    p.setLifespan(random(0.3, 0.5));
+                    p.easing = "easeInQuad";
+                    this.particles.push(p);
+                }
+                coin.dead = true;
+            }
+            return !coin.dead;
+        });
     }
 
     increaseScore(amt = 1) {
@@ -367,6 +387,8 @@ class Game {
         if (!this.bird.dead) {
             this.bird.jump();
 
+            playSound(window.sounds.tap);
+
             if (config.settings.jumpParticles) {
                 let col = color(config.settings.jumpParticlesColor);
                 for (let i = 0; i < 5; i++) {
@@ -387,6 +409,7 @@ class Game {
     finishGame() {
         if (!this.finished) {
             this.finished = true;
+            playSound(window.sounds.lose)
         }
     }
 
@@ -523,6 +546,12 @@ class Game {
                     config.settings.instructions3,
                     width / 2,
                     height / 2 + this.instructionsFontSize * 1.7
+                );
+
+                text(
+                    `Score more than ${config.settings.scoreToWin} to win!`,
+                    width / 2,
+                    height / 2 + this.instructionsFontSize * 3.4
                 );
             }
 
