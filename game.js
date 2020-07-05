@@ -8,15 +8,16 @@ const CoinScore = parseInt(config.settings.coinScore);
 const GateSpeed = 230;
 
 function getGapLevel() {
-    let lv = config.settings.gapLevel;
-    if (lv == 1) return 1;
-    if (lv == 2) return 1.4;
+    let lv = parseInt(config.settings.gapLevel);
+    if (lv == 1) return 1.2;
+    if (lv == 2) return 1.5;
     if (lv == 3) return 1.8;
     if (lv == 4) return 2;
 
     return 1.4;
 }
 const GapLevel = getGapLevel();
+console.log(GapLevel);
 
 class Pipe {
     constructor(dir, x, pipeHeight) {
@@ -409,7 +410,7 @@ class Game {
     finishGame() {
         if (!this.finished) {
             this.finished = true;
-            playSound(window.sounds.lose)
+            playSound(window.sounds.lose);
         }
     }
 
