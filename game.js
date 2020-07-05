@@ -319,7 +319,7 @@ class Game {
         if (this.c_gateSpawnCd < 0) {
             this.c_gateSpawnCd = this.gateSpawnCd;
             let gate = new Gate(width, this.getGapY());
-            if (random(100) < 20) {
+            if (random(100) < 25) {
                 this.coins.push(new Coin(gate.x + gate.pipeUp.rect.w / 2, gate.gapY));
             }
             this.gates.push(gate);
@@ -362,6 +362,7 @@ class Game {
                     this.particles.push(p);
                 }
                 coin.dead = true;
+                playSound(window.sounds.coin);
             }
             return !coin.dead;
         });
@@ -411,6 +412,54 @@ class Game {
         if (!this.finished) {
             this.finished = true;
             playSound(window.sounds.lose);
+            let pt = new PopupText(
+                "Tap to continue ...",
+                width / 2,
+                height / 2 + this.instructionsFontSize * 3,
+                this.instructionsFontSize,
+                color(config.settings.textColor)
+            );
+            pt.font = config.preGameScreen.fontFamily;
+            pt.easeDuration = 1.3;
+            pt.easing = "elastic";
+
+            let won = this.score >= config.settings.scoreToWin;
+            let msg = won ? config.settings.winText : config.settings.loseText;
+            let messageText = new PopupText(
+                msg,
+                width / 2,
+                height / 2,
+                MOBILE ? this.instructionsFontSize * 1.5 : this.instructionsFontSize * 2,
+                color(config.settings.textColor)
+            );
+            messageText.font = config.preGameScreen.fontFamily;
+            messageText.easeDuration = 1;
+            messageText.easing = "elastic";
+            this.particles.push(...[pt, messageText]);
+
+            if (won) {
+                this.confetti();
+            }
+        }
+    }
+
+    confetti() {
+        let spots = 7;
+        let amt = 10;
+        if (MOBILE) {
+            spots = 5;
+        }
+        for (let i = 0; i < spots; i++) {
+            let x = floor(random(width / 4, width - width / 4));
+            let y = floor(random(height / 4, height - height / 4));
+            for (let j = 0; j < amt; j++) {
+                let acc = randomParticleAcc(4);
+                let col = color(floor(random(0, 255)), floor(random(255)), floor(random(255)));
+                let size = floor(random(30, 40));
+                let p = new Particle(x, y, acc, size, col);
+                p.setLifespan(random(0.8, 1.4));
+                this.particles.push(p);
+            }
         }
     }
 
@@ -427,8 +476,8 @@ class Game {
         this.particles = [];
 
         this.instructionsFontSize = height / 27;
-        this.scoreFontSize = height / 20;
-        this.delayBeforeExit = 1.2;
+        this.scoreFontSize = height / 18;
+        this.delayBeforeExit = 0.4;
 
         // Don'touch these
         this.started = false;
@@ -540,19 +589,23 @@ class Game {
                 text(
                     config.settings.instructions1,
                     width / 2,
-                    height / 2 - this.instructionsFontSize * 1.7
+                    height / 2 - this.instructionsFontSize * 2
                 );
-                text(config.settings.instructions2, width / 2, height / 2);
+                text(
+                    config.settings.instructions2,
+                    width / 2,
+                    height / 2 - this.instructionsFontSize * 0.7
+                );
                 text(
                     config.settings.instructions3,
                     width / 2,
-                    height / 2 + this.instructionsFontSize * 1.7
+                    height / 2 + this.instructionsFontSize * 0.7
                 );
 
                 text(
                     `Score more than ${config.settings.scoreToWin} to win!`,
                     width / 2,
-                    height / 2 + this.instructionsFontSize * 3.4
+                    height / 2 + this.instructionsFontSize * 2
                 );
             }
 
@@ -571,7 +624,15 @@ class Game {
             if (this.finished) {
                 this.delayBeforeExit -= deltaTime / 1000;
 
-                if (this.delayBeforeExit < 0) {
+                // this.c_instructionsFontSize = lerp(this.c_instructionsFontSize, 0, 0.4);
+
+                // fill(color(config.settings.textColor));
+                // noStroke();
+                // textSize(this.c_instructionsFontSize);
+                // textAlign(CENTER);
+                // textFont(config.preGameScreen.fontFamily);
+                // text("Tap to continue ...", width / 2, height / 2);
+                if (mouseIsPressed && this.delayBeforeExit < 0) {
                     window.setEndScreenWithScore(this.score);
                 }
             }
@@ -601,6 +662,53 @@ function setGradient(x, y, w, h, c1, c2) {
         let c = lerpColor(c1, c2, inter);
         stroke(c);
         line(x, i, x + w, i);
+    }
+}
+
+class PopupText {
+    constructor(text, x, y, size, color) {
+        this.text = text;
+        this.x = x;
+        this.y = y;
+        this.startSize = 0;
+        this.c_size = this.startSize;
+        this.size = size;
+        this.color = color;
+        this.easeDuration = 1;
+        this.easing = "easeInQuad";
+        this.startEase = false;
+        this.font = "Arial";
+        this.style = NORMAL;
+        this.vAlign = CENTER;
+        this.hAlign = CENTER;
+        this.dead = false;
+    }
+
+    draw() {
+        if (!this.startEase) {
+            this.startEase = true;
+            shifty.tween({
+                from: {
+                    size: this.startSize,
+                },
+                to: {
+                    size: this.size,
+                },
+                duration: this.easeDuration * 1000,
+                easing: this.easing,
+                step: (state) => {
+                    this.c_size = state.size;
+                },
+            });
+        }
+
+        noStroke();
+        fill(this.color);
+        textAlign(this.vAlign, this.hAlign);
+        textStyle(this.style);
+        textFont(this.font);
+        textSize(this.c_size);
+        text(this.text, this.x, this.y);
     }
 }
 

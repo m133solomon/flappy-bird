@@ -101,6 +101,16 @@
                     "key": "soundDisabledIcon",
                     "type": "image",
                     "header": "Sound disabled icon"
+                },
+                {
+                    "key": "currentScreen",
+                    "header": "Debug: screen view",
+                    "type": "dropdown",
+                    "options": [
+                        "preGameScreen",
+                        "gameScreen",
+                        "postGameScreen"
+                    ]
                 }
             ]
         },
@@ -191,8 +201,23 @@
                     "type": "color"
                 },
                 {
+                    "key": "loseText",
+                    "header": "Lose text",
+                    "type": "text"
+                },
+                {
+                    "key": "winText",
+                    "header": "Win text",
+                    "type": "text"
+                },
+                {
                     "key": "tap",
                     "header": "Tap sound effect",
+                    "type": "sound"
+                },
+                {
+                    "key": "coinSound",
+                    "header": "Coin collect sound",
                     "type": "sound"
                 },
                 {
@@ -318,7 +343,7 @@
     ],
     "config": {
         "preGameScreen": {
-            "titleText": "template",
+            "titleText": "Flappy Plane",
             "titleTextSize": 30,
             "playButtonText": "Play",
             "cardColor": "#ffffff",
@@ -334,7 +359,8 @@
             "leaderboardButtonText": "Leadeboard",
             "showSoundButton": true,
             "soundEnabledIcon": "assets/sound_on.png",
-            "soundDisabledIcon": "assets/sound_off.png"
+            "soundDisabledIcon": "assets/sound_off.png",
+            "currentScreen": "preGameScreen"
         },
         "settings": {
             "instructions1": "Tap to jump",
@@ -350,9 +376,12 @@
             "jumpParticlesColor": "#ffffff",
             "gapLevel": "2",
             "coinScore": 3,
+            "loseText": "Maybe next time!",
+            "winText": "Congrats, you won!",
             "theme": "assets/theme.mp3",
             "volume": "0.7",
             "tap": "assets/tap.wav",
+            "coinSound": "assets/coin.wav",
             "lose": "assets/lose.wav"
         },
         "postGameScreen": {
