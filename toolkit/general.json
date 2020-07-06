@@ -176,6 +176,16 @@
                     }
                 },
                 {
+                    "key": "spawnCd",
+                    "header": "Distance between gates",
+                    "type": "range",
+                    "options": {
+                        "minValue": 1,
+                        "maxValue": 4,
+                        "stepSize": 1
+                    }
+                },
+                {
                     "key": "coinScore",
                     "header": "Extra score per coin",
                     "type": "range",
@@ -184,6 +194,11 @@
                         "maxValue": 5,
                         "stepSize": 1
                     }
+                },
+                {
+                    "key": "confetti",
+                    "header": "Show confetti when player wins",
+                    "type": "boolean"
                 },
                 {
                     "key": "jumpParticles",
@@ -372,9 +387,11 @@
             "pipeBody": "assets/pipeBody.png",
             "bird": "assets/plane.png",
             "coin": "assets/coin.png",
+            "confetti": true,
             "jumpParticles": true,
             "jumpParticlesColor": "#ffffff",
-            "gapLevel": "2",
+            "gapLevel": "4",
+            "spawnCd": 3,
             "coinScore": 3,
             "loseText": "Maybe next time!",
             "winText": "Congrats, you won!",

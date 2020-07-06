@@ -17,7 +17,6 @@ function getGapLevel() {
     return 1.4;
 }
 const GapLevel = getGapLevel();
-console.log(GapLevel);
 
 class Pipe {
     constructor(dir, x, pipeHeight) {
@@ -54,7 +53,6 @@ class Pipe {
 
         this.head = window.images.pipeHead;
         this.body = window.images.pipeBody;
-
         this.headSize = calculateAspectRatioFit(
             this.head.width,
             this.head.height,
@@ -117,6 +115,16 @@ class Gate {
             gapHeight *= 1.1;
         }
 
+        if (gapHeight > height / 2) {
+            gapHeight = height / 2;
+        }
+
+        if (gapY + gapHeight / 2 > height - height / 6) {
+            gapY = height - height / 6 - gapHeight / 2;
+        } else if (gapY - gapHeight / 2 < height / 6) {
+            gapY = height / 6 + gapHeight / 2;
+        }
+
         this.x = x;
         this.gapY = gapY;
         this.pipeUp = new Pipe(-1, this.x, gapY + gapHeight / 2);
@@ -154,8 +162,8 @@ class Bird {
         this.rotation = 0;
         this.firstJump = true;
 
-        this.gravity = 60;
-        this.jumpForce = floor(this.rect.h * 0.27);
+        this.gravity = BirdSize * 0.9;
+        this.jumpForce = floor(BirdSize * 0.2);
 
         this.vel = 0;
 
@@ -278,11 +286,25 @@ class Coin {
     }
 }
 
+function getSpawnCd() {
+    let cd = parseInt(config.settings.spawnCd);
+    let result = 2;
+    if (cd == 1) result = 1.4;
+    if (cd == 2) result = 2.2;
+    if (cd == 3) result = 2.8;
+    if (cd == 4) result = 3.2;
+
+    if (MOBILE) {
+        result += 0.15;
+    }
+    return result;
+}
+
 class Game {
     constructor() {
         this.defaults();
 
-        this.gateSpawnCd = 3;
+        this.gateSpawnCd = getSpawnCd();
         this.c_gateSpawnCd = 2;
         this.gates = [];
         this.coins = [];
@@ -314,7 +336,9 @@ class Game {
         this.bird.draw();
         this.bird.checkCollisions(this.gates);
 
-        this.c_gateSpawnCd -= deltaTime / 1000;
+        if (!this.finished) {
+            this.c_gateSpawnCd -= deltaTime / 1000;
+        }
 
         if (this.c_gateSpawnCd < 0) {
             this.c_gateSpawnCd = this.gateSpawnCd;
@@ -437,7 +461,7 @@ class Game {
             messageText.easing = "elastic";
             this.particles.push(...[pt, messageText]);
 
-            if (won) {
+            if (won && config.settings.confetti) {
                 this.confetti();
             }
         }
