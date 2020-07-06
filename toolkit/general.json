@@ -106,11 +106,7 @@
                     "key": "currentScreen",
                     "header": "Debug: screen view",
                     "type": "dropdown",
-                    "options": [
-                        "preGameScreen",
-                        "gameScreen",
-                        "postGameScreen"
-                    ]
+                    "options": ["preGameScreen", "gameScreen", "postGameScreen"]
                 }
             ]
         },
@@ -156,14 +152,26 @@
                     "type": "image"
                 },
                 {
-                    "key": "bird",
-                    "header": "Bird image",
+                    "key": "idle",
+                    "header": "Bird idle image",
                     "type": "image"
                 },
                 {
-                    "key": "coin",
-                    "header": "Coin image",
+                    "key": "jump",
+                    "header": "Bird jump image",
                     "type": "image"
+                },
+                {
+                    "key": "coins",
+                    "header": "Coin images",
+                    "type": "array",
+                    "fields": [
+                        {
+                            "key": "coin1",
+                            "header": "Coin 1",
+                            "type": "image"
+                        }
+                    ]
                 },
                 {
                     "key": "gapLevel",
@@ -385,8 +393,11 @@
             "textColor": "#000",
             "pipeHead": "assets/pipeHead.png",
             "pipeBody": "assets/pipeBody.png",
-            "bird": "assets/plane.png",
-            "coin": "assets/coin.png",
+            "idle": "assets/idle.png",
+            "jump": "assets/jump.png",
+            "coins": {
+                "coin1": "assets/coin.png"
+            },
             "confetti": true,
             "jumpParticles": true,
             "jumpParticlesColor": "#ffffff",

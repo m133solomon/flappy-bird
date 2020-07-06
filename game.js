@@ -154,9 +154,14 @@ class Bird {
     constructor() {
         this.x = width / 3;
         this.y = height / 2;
-        this.img = window.images.bird;
+        this.idleImg = window.images.idle;
+        this.jumpImg = window.images.jump;
+
+        this.img = this.idleImg;
+
         this.size = calculateAspectRatioFit(this.img.width, this.img.height, BirdSize, BirdSize);
         this.rect = Rectangle.FromPosition(this.x, this.y, this.size.width, this.size.height);
+
         this.rect.debugColor = 255;
         this.scale = 1;
         this.rotation = 0;
@@ -209,6 +214,19 @@ class Bird {
     }
 
     draw() {
+
+        if (this.vel < 0) {
+            this.img = this.jumpImg;
+        } else {
+            this.img = this.idleImg;
+        }
+
+        this.size = calculateAspectRatioFit(this.img.width, this.img.height, BirdSize, BirdSize);
+        this.rect = Rectangle.FromPosition(this.rect.center().x, this.rect.center().y, this.size.width, this.size.height);
+
+        noStroke();
+        fill(0);
+
         push();
         translate(this.rect.center().x, this.rect.center().y);
         scale(this.scale);
@@ -241,7 +259,7 @@ class Bird {
 
 class Coin {
     constructor(x, y) {
-        this.img = window.images.coin;
+        this.img = randomFromArray(window.images.coins);
         this.size = calculateAspectRatioFit(this.img.width, this.img.height, BirdSize, BirdSize);
         this.x = x;
         this.y = y;
@@ -380,7 +398,7 @@ class Game {
                         randomParticleAcc(3),
                         floor(random(45, 65))
                     );
-                    p.image = window.images.coin;
+                    p.image = coin.img;
                     p.setLifespan(random(0.3, 0.5));
                     p.easing = "easeInQuad";
                     this.particles.push(p);

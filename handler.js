@@ -49,7 +49,7 @@ window.soundEnabled = true;
 
 // can change this to any screen for deubugging purposes
 
-window.currentScreen = config.preGameScreen.currentScreen; 
+window.currentScreen = config.preGameScreen.currentScreen;
 
 window.setScreen = function (screenName) {
     window.currentScreen = screenName;
@@ -84,10 +84,14 @@ window.sounds = {};
 
 function loadImages() {
     window.images.background = loadImage(config.preGameScreen["backgroundImage"]);
-    window.images.bird = loadImage(config.settings.bird);
-    window.images.coin = loadImage(config.settings.coin);
+    window.images.idle = loadImage(config.settings.idle);
+    window.images.jump = loadImage(config.settings.jump);
     window.images.pipeHead = loadImage(config.settings.pipeHead);
     window.images.pipeBody = loadImage(config.settings.pipeBody);
+
+    window.images.coins = Object.keys(config.settings.coins).map((k) => {
+        return loadImage(config.settings.coins[k]);
+    });
 }
 
 function loadSounds() {
