@@ -657,7 +657,7 @@ class Game {
                 // textFont(config.preGameScreen.fontFamily);
                 // text("Tap to continue ...", width / 2, height / 2);
                 if (
-                    this.lastMouseState == mouseIsPressed &&
+                    this.lastMouseState == true &&
                     !mouseIsPressed &&
                     this.delayBeforeExit < 0
                 ) {
