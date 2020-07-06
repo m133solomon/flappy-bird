@@ -510,7 +510,7 @@ class Game {
     }
 
     mousePressed() {
-        if (mouseIsPressed && !this.mouse_pressed) {
+        if ((mouseIsPressed || keyIsDown(32)) && !this.mouse_pressed) {
             this.mouse_pressed = true;
 
             if (!this.started) {
@@ -519,7 +519,7 @@ class Game {
             if (this.started) {
                 this.onMousePress();
             }
-        } else if (!mouseIsPressed) {
+        } else if (!mouseIsPressed && !keyIsDown(32)) {
             this.mouse_pressed = false;
         }
     }
@@ -656,7 +656,11 @@ class Game {
                 // textAlign(CENTER);
                 // textFont(config.preGameScreen.fontFamily);
                 // text("Tap to continue ...", width / 2, height / 2);
-                if (this.lastMouseState == mouseIsPressed && !mouseIsPressed && this.delayBeforeExit < 0) {
+                if (
+                    this.lastMouseState == mouseIsPressed &&
+                    !mouseIsPressed &&
+                    this.delayBeforeExit < 0
+                ) {
                     window.setEndScreenWithScore(this.score);
                 }
                 this.lastMouseState = mouseIsPressed;
