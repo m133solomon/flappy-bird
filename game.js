@@ -656,9 +656,10 @@ class Game {
                 // textAlign(CENTER);
                 // textFont(config.preGameScreen.fontFamily);
                 // text("Tap to continue ...", width / 2, height / 2);
-                if (mouseIsPressed && this.delayBeforeExit < 0) {
+                if (this.lastMouseState == mouseIsPressed && !mouseIsPressed && this.delayBeforeExit < 0) {
                     window.setEndScreenWithScore(this.score);
                 }
+                this.lastMouseState = mouseIsPressed;
             }
         }
     }
