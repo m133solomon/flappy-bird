@@ -323,7 +323,7 @@ class Game {
         this.defaults();
 
         this.gateSpawnCd = getSpawnCd();
-        this.c_gateSpawnCd = 2;
+        this.c_gateSpawnCd = 1;
         this.gates = [];
         this.coins = [];
         this.firstGate = true;
