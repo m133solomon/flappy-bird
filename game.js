@@ -37,12 +37,7 @@ class Pipe {
         } else if (dir == -1) {
             this.rotation = 0;
 
-            this.rect = new Rectangle(
-                this.x,
-                this.height,
-                this.pipeSize.width,
-                this.pipeSize.height
-            );
+            this.rect = new Rectangle(this.x, this.height, this.pipeSize.width, this.pipeSize.height);
             this.rect.debugColor = 255;
         }
 
@@ -53,12 +48,7 @@ class Pipe {
 
         this.head = window.images.pipeHead;
         this.body = window.images.pipeBody;
-        this.headSize = calculateAspectRatioFit(
-            this.head.width,
-            this.head.height,
-            this.rect.w,
-            this.rect.h
-        );
+        this.headSize = calculateAspectRatioFit(this.head.width, this.head.height, this.rect.w, this.rect.h);
     }
 
     draw(newX) {
@@ -69,35 +59,11 @@ class Pipe {
         rotate(this.rotation);
         imageMode(CENTER);
         if (this.dir == 1) {
-            image(
-                this.head,
-                0,
-                -this.rect.h / 2 + this.headSize.height / 2,
-                this.headSize.width,
-                this.headSize.height
-            );
-            image(
-                this.body,
-                0,
-                this.headSize.height / 2,
-                this.rect.w - 7,
-                this.rect.h - this.headSize.height
-            );
+            image(this.head, 0, -this.rect.h / 2 + this.headSize.height / 2, this.headSize.width, this.headSize.height);
+            image(this.body, 0, this.headSize.height / 2, this.rect.w - 7, this.rect.h - this.headSize.height);
         } else if (this.dir == -1) {
-            image(
-                this.head,
-                0,
-                -this.rect.h / 2 + this.headSize.height / 2,
-                this.headSize.width,
-                this.headSize.height
-            );
-            image(
-                this.body,
-                0,
-                this.headSize.height / 2,
-                this.rect.w - 7,
-                this.rect.h - this.headSize.height
-            );
+            image(this.head, 0, -this.rect.h / 2 + this.headSize.height / 2, this.headSize.width, this.headSize.height);
+            image(this.body, 0, this.headSize.height / 2, this.rect.w - 7, this.rect.h - this.headSize.height);
         }
         imageMode(CORNER);
         pop();
@@ -200,10 +166,7 @@ class Bird {
         this.hitbox.debug();
 
         gates.map((gate) => {
-            if (
-                intersectRect(this.hitbox, gate.pipeUp.rect) ||
-                intersectRect(this.hitbox, gate.pipeDown.rect)
-            ) {
+            if (intersectRect(this.hitbox, gate.pipeUp.rect) || intersectRect(this.hitbox, gate.pipeDown.rect)) {
                 this.dead = true;
             }
         });
@@ -214,7 +177,6 @@ class Bird {
     }
 
     draw() {
-
         if (this.vel < 0) {
             this.img = this.jumpImg;
         } else {
@@ -222,7 +184,12 @@ class Bird {
         }
 
         this.size = calculateAspectRatioFit(this.img.width, this.img.height, BirdSize, BirdSize);
-        this.rect = Rectangle.FromPosition(this.rect.center().x, this.rect.center().y, this.size.width, this.size.height);
+        this.rect = Rectangle.FromPosition(
+            this.rect.center().x,
+            this.rect.center().y,
+            this.size.width,
+            this.size.height
+        );
 
         noStroke();
         fill(0);
@@ -336,11 +303,7 @@ class Game {
     updateGame() {
         this.gates = this.gates.filter((gate) => {
             gate.draw();
-            if (
-                gate.pipeUp.rect.right() < this.bird.rect.left() &&
-                !gate.scored &&
-                !this.bird.dead
-            ) {
+            if (gate.pipeUp.rect.right() < this.bird.rect.left() && !gate.scored && !this.bird.dead) {
                 this.increaseScore();
                 gate.scored = true;
             }
@@ -372,10 +335,7 @@ class Game {
             this.bird.kill();
         }
 
-        if (
-            this.c_gateSpawnCd > this.gateSpawnCd * 0.3 &&
-            this.c_gateSpawnCd < this.gateSpawnCd * 0.8
-        ) {
+        if (this.c_gateSpawnCd > this.gateSpawnCd * 0.3 && this.c_gateSpawnCd < this.gateSpawnCd * 0.8) {
             if (random(150) < 1) {
                 let y = floor(random(height / 3, height - height / 3));
                 this.coins.push(new Coin(width + BirdSize, y));
@@ -392,12 +352,7 @@ class Game {
             if (intersectRect(this.bird.rect, coin.rect)) {
                 this.increaseScore(CoinScore);
                 for (let i = 0; i < 5; i++) {
-                    let p = new Particle(
-                        coin.x,
-                        coin.y,
-                        randomParticleAcc(3),
-                        floor(random(45, 65))
-                    );
+                    let p = new Particle(coin.x, coin.y, randomParticleAcc(3), floor(random(45, 65)));
                     p.image = coin.img;
                     p.setLifespan(random(0.3, 0.5));
                     p.easing = "easeInQuad";
@@ -547,12 +502,7 @@ class Game {
         this.bgImage = window.images.background;
 
         if (config.preGameScreen.backgroundMode == "fit") {
-            let size = calculateAspectRatioFit(
-                this.bgImage.width,
-                this.bgImage.height,
-                width,
-                height
-            );
+            let size = calculateAspectRatioFit(this.bgImage.width, this.bgImage.height, width, height);
             this.bgImageWidth = size.width;
             this.bgImageHeight = size.height;
         } else {
@@ -609,11 +559,7 @@ class Game {
             // Animate instructions font size
             // in and out
             if (this.instructionsFontSize - this.c_instructionsFontSize > 0.1 && !this.started) {
-                this.c_instructionsFontSize = lerp(
-                    this.c_instructionsFontSize,
-                    this.instructionsFontSize,
-                    0.2
-                );
+                this.c_instructionsFontSize = lerp(this.c_instructionsFontSize, this.instructionsFontSize, 0.2);
             }
 
             if (this.c_instructionsFontSize > 0.1) {
@@ -628,21 +574,9 @@ class Game {
                 textSize(this.c_instructionsFontSize);
                 textAlign(CENTER);
 
-                text(
-                    config.settings.instructions1,
-                    width / 2,
-                    height / 2 - this.instructionsFontSize * 2
-                );
-                text(
-                    config.settings.instructions2,
-                    width / 2,
-                    height / 2 - this.instructionsFontSize * 0.7
-                );
-                text(
-                    config.settings.instructions3,
-                    width / 2,
-                    height / 2 + this.instructionsFontSize * 0.7
-                );
+                text(config.settings.instructions1, width / 2, height / 2 - this.instructionsFontSize * 2);
+                text(config.settings.instructions2, width / 2, height / 2 - this.instructionsFontSize * 0.7);
+                text(config.settings.instructions3, width / 2, height / 2 + this.instructionsFontSize * 0.7);
 
                 text(
                     `Score more than ${config.settings.scoreToWin} to win!`,
@@ -665,20 +599,7 @@ class Game {
 
             if (this.finished) {
                 this.delayBeforeExit -= deltaTime / 1000;
-
-                // this.c_instructionsFontSize = lerp(this.c_instructionsFontSize, 0, 0.4);
-
-                // fill(color(config.settings.textColor));
-                // noStroke();
-                // textSize(this.c_instructionsFontSize);
-                // textAlign(CENTER);
-                // textFont(config.preGameScreen.fontFamily);
-                // text("Tap to continue ...", width / 2, height / 2);
-                if (
-                    this.lastMouseState == true &&
-                    !mouseIsPressed &&
-                    this.delayBeforeExit < 0
-                ) {
+                if (this.lastMouseState == true && !mouseIsPressed && this.delayBeforeExit < 0) {
                     window.setEndScreenWithScore(this.score);
                 }
                 this.lastMouseState = mouseIsPressed;
@@ -931,12 +852,7 @@ class Rectangle {
 }
 
 function intersectRect(r1, r2) {
-    return !(
-        r2.left() > r1.right() ||
-        r2.right() < r1.left() ||
-        r2.top() > r1.bottom() ||
-        r2.bottom() < r1.top()
-    );
+    return !(r2.left() > r1.right() || r2.right() < r1.left() || r2.top() > r1.bottom() || r2.bottom() < r1.top());
 }
 
 function randomParticleAcc(amt) {

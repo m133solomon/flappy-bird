@@ -1,10 +1,10 @@
 let React = require("react");
-let ReactDOM = require("react-dom");
 let styled = require("styled-components").default;
 
 let Database = require("database-api").default;
 
 let config = require("visual-config-exposer").default.postGameScreen;
+let gameConfig = require("visual-config-exposer").default.settings;
 
 let database = new Database();
 
@@ -98,9 +98,7 @@ class Leaderboard extends React.Component {
                         {this.props.data.map((entry, index) => {
                             return (
                                 <Tr key={index}>
-                                    <Td extra={`width: ${cardWidth}`}>
-                                        {index + 1 + ". " + entry.display_name}
-                                    </Td>
+                                    <Td extra={`width: ${cardWidth}`}>{index + 1 + ". " + entry.display_name}</Td>
                                     <Td extra="text-align: right;">{entry.score}</Td>
                                 </Tr>
                             );
@@ -125,37 +123,35 @@ class PostGameScreen extends React.Component {
     }
 
     render() {
+
+        const SHOW_TEXT = !config.showTextCondition || (window.score > gameConfig.scoreToWin);
+
         const card1Height = getCardHeight();
         const card2Height = 65;
         let card3Height = 0;
         const leaderboardHeight = 400;
 
-        if (config.showText) {
+        if (SHOW_TEXT) {
             card3Height += 42;
         }
         if (config.showCTA) {
             card3Height += 100;
         }
 
-        let card1Top =
-            config.showText || config.showCTA
-                ? -(card1Height + card2Height + card3Height) * 0.6
-                : 0;
+        let card1Top = config.showText || config.showCTA ? -(card1Height + card2Height + card3Height) * 0.6 : 0;
+
         if (!config.showLeadeboardButtonPostGameScreen) {
             card1Top -= card1Height * 2;
         }
-        const card2Top =
-            card1Top + (this.state.showLeaderboard ? leaderboardHeight : card1Height) + 120;
+
+        const card2Top = card1Top + (this.state.showLeaderboard ? leaderboardHeight : card1Height) + 120;
+
         const card3Top = card2Top + card2Height + card3Height + 90;
 
         return (
             <div>
                 {this.state.showLeaderboard == true && (
-                    <Card
-                        bgColor={config.cardColor}
-                        height={leaderboardHeight}
-                        extra={`top: ${card1Top}px;`}
-                    >
+                    <Card bgColor={config.cardColor} height={leaderboardHeight} extra={`top: ${card1Top}px;`}>
                         {this.state.leaderboardData != null && (
                             <Leaderboard
                                 height={leaderboardHeight - 50}
@@ -165,11 +161,7 @@ class PostGameScreen extends React.Component {
                     </Card>
                 )}
                 {this.state.showLeaderboard == false && (
-                    <Card
-                        bgColor={config.cardColor}
-                        height={card1Height + "px"}
-                        extra={`top: ${card1Top}px;`}
-                    >
+                    <Card bgColor={config.cardColor} height={card1Height + "px"} extra={`top: ${card1Top}px;`}>
                         <Text fontSize="30px" fontColor={config.textColor}>
                             {config.scoreText + window.score}
                         </Text>
@@ -189,7 +181,9 @@ class PostGameScreen extends React.Component {
                                             fontColor={config.textColor}
                                             extra="width: 80%;"
                                             onChange={(ev) => {
-                                                this.setState({ name: ev.target.value });
+                                                this.setState({
+                                                    name: ev.target.value,
+                                                });
                                             }}
                                         ></SubmitBox>
                                     </div>
@@ -208,7 +202,9 @@ class PostGameScreen extends React.Component {
                                             fontColor={config.textColor}
                                             extra="width: 80%;"
                                             onChange={(ev) => {
-                                                this.setState({ email: ev.target.value });
+                                                this.setState({
+                                                    email: ev.target.value,
+                                                });
                                             }}
                                         ></SubmitBox>
                                     </div>
@@ -229,14 +225,18 @@ class PostGameScreen extends React.Component {
                                         }
 
                                         database.postScoreData(scoreData).then((res) => {
-                                            this.setState({ showLeaderboard: true });
+                                            this.setState({
+                                                showLeaderboard: true,
+                                            });
 
                                             database.getLeaderBoard().then((data) => {
                                                 let sortedData = data.sort(
                                                     (a, b) => parseInt(a.score) < parseInt(b.score)
                                                 );
 
-                                                this.setState({ leaderboardData: sortedData });
+                                                this.setState({
+                                                    leaderboardData: sortedData,
+                                                });
                                             });
                                         });
                                     }}
@@ -248,11 +248,7 @@ class PostGameScreen extends React.Component {
                     </Card>
                 )}
 
-                <Card
-                    bgColor="transparent"
-                    height={card2Height}
-                    extra={`top: ${card2Top}px; box-shadow: none;`}
-                >
+                <Card bgColor="transparent" height={card2Height} extra={`top: ${card2Top}px; box-shadow: none;`}>
                     <Button
                         id="button"
                         height="65px"
@@ -264,18 +260,14 @@ class PostGameScreen extends React.Component {
                         {config.playButtonText}
                     </Button>
                 </Card>
-                {(config.showText || config.showCTA) && (
+                {((config.showText && window.score > gameConfig.scoreToWin) || config.showCTA) && (
                     <Card
                         bgColor={config.cardColor}
                         height={card3Height}
                         extra={`top: ${card3Top}px; padding: 25px 10px; maxn-height: ${card3Height}px`}
                     >
-                        {config.showText && (
-                            <Text
-                                fontSize="30px"
-                                fontColor={config.textColor}
-                                extra="padding-bottom: 10px;"
-                            >
+                        {SHOW_TEXT && window.score > gameConfig.scoreToWin && (
+                            <Text fontSize="30px" fontColor={config.textColor} extra="padding-bottom: 10px;">
                                 {config.customText}
                             </Text>
                         )}
